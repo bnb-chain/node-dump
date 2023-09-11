@@ -31,8 +31,11 @@ type ExportedProofs map[string][]string
 
 // ExportedAccountState is an exported account state.
 type ExportedAccountState struct {
-	Accounts  []*ExportedAccount `json:"accounts"`
-	Assets    ExportedAssets     `json:"assets"`
-	StateRoot string             `json:"state_root"`
-	Proofs    ExportedProofs     `json:"proofs"`
+	ChainID     string             `json:"chain_id"`
+	BlockHeight int64              `json:"block_height"`
+	CommitID    sdk.CommitID       `json:"commit_id"`
+	Accounts    []*ExportedAccount `json:"accounts"`
+	Assets      ExportedAssets     `json:"assets"`
+	StateRoot   string             `json:"state_root"`
+	Proofs      ExportedProofs     `json:"proofs"`
 }

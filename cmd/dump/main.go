@@ -84,11 +84,15 @@ func ExportAccounts(app *app.BNBBeaconChain) (appState json.RawMessage, err erro
 		}
 		exportedProof[accounts[i].Address.String()] = nProof
 	}
+
 	genState := types.ExportedAccountState{
-		Accounts:  accounts,
-		Assets:    assets,
-		StateRoot: "0x" + common.Bytes2Hex(tree.Root),
-		Proofs:    exportedProof,
+		ChainID:     app.CheckState.Ctx.ChainID(),
+		BlockHeight: app.LastBlockHeight(),
+		CommitID:    app.LastCommitID(),
+		Accounts:    accounts,
+		Assets:      assets,
+		StateRoot:   "0x" + common.Bytes2Hex(tree.Root),
+		Proofs:      exportedProof,
 	}
 	appState, err = wire.MarshalJSONIndent(app.Codec, genState)
 	if err != nil {
