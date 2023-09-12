@@ -54,13 +54,52 @@ func ExportAccounts(app *app.BNBBeaconChain, outputPath string) (err error) {
 		frozenCoins := namedAcc.GetFrozenCoins()
 		lockedCoins := namedAcc.GetLockedCoins()
 		for _, coin := range coins {
-			assets[coin.Denom] += coins.AmountOf(coin.Denom)
+			asset, exist := assets[coin.Denom]
+			if exist {
+				asset.Amount += coin.Amount
+			} else {
+				token, err := app.TokenMapper.GetToken(ctx, coin.Denom)
+				if err != nil {
+					trace(err)
+					return true
+				}
+				assets[coin.Denom] = &types.ExportedAsset{
+					Owner:  token.GetOwner(),
+					Amount: coin.Amount,
+				}
+			}
 		}
 		for _, coin := range frozenCoins {
-			assets[coin.Denom] += frozenCoins.AmountOf(coin.Denom)
+			asset, exist := assets[coin.Denom]
+			if exist {
+				asset.Amount += coin.Amount
+			} else {
+				token, err := app.TokenMapper.GetToken(ctx, coin.Denom)
+				if err != nil {
+					trace(err)
+					return true
+				}
+				assets[coin.Denom] = &types.ExportedAsset{
+					Owner:  token.GetOwner(),
+					Amount: coin.Amount,
+				}
+			}
 		}
 		for _, coin := range lockedCoins {
-			assets[coin.Denom] += lockedCoins.AmountOf(coin.Denom)
+			asset, exist := assets[coin.Denom]
+			if exist {
+				asset.Amount += coin.Amount
+			} else {
+				token, err := app.TokenMapper.GetToken(ctx, coin.Denom)
+				if err != nil {
+					trace(err)
+					return true
+				}
+				assets[coin.Denom] = &types.ExportedAsset{
+					Owner:  token.GetOwner(),
+					Amount: coin.Amount,
+				}
+			}
 		}
 
 		account := types.ExportedAccount{

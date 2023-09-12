@@ -28,7 +28,12 @@ func (acc *ExportedAccount) Serialize() ([]byte, error) {
 }
 
 // ExportedAssets is a map of asset name to amount
-type ExportedAssets map[string]int64
+type ExportedAssets map[string]*ExportedAsset
+
+type ExportedAsset struct {
+	Owner  sdk.AccAddress `json:"owner,omitempty"`
+	Amount int64          `json:"amount"`
+}
 
 // ExportedProofs is a map of account address to merkle proof
 type ExportedProofs map[string][]string
