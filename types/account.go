@@ -11,7 +11,9 @@ import (
 type ExportedAccount struct {
 	Address       sdk.AccAddress `json:"address"`
 	AccountNumber int64          `json:"account_number"`
-	Coins         sdk.Coins      `json:"coins"`
+	Coins         sdk.Coins      `json:"coins,omitempty"`
+	FrozenCoins   sdk.Coins      `json:"frozen_coins,omitempty"`
+	LockedCoins   sdk.Coins      `json:"locked_coins,omitempty"`
 }
 
 // Serialize implements merkle tree data Serialize method.
@@ -20,6 +22,8 @@ func (acc *ExportedAccount) Serialize() ([]byte, error) {
 		acc.Address.Bytes(),
 		big.NewInt(acc.AccountNumber).Bytes(),
 		[]byte(acc.Coins.String()),
+		[]byte(acc.FrozenCoins.String()),
+		[]byte(acc.LockedCoins.String()),
 	).Bytes(), nil
 }
 

@@ -23,6 +23,7 @@ import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
 
 	"github.com/bnb-chain/node/app"
+	nodetypes "github.com/bnb-chain/node/common/types"
 
 	mt "github.com/txaty/go-merkletree"
 
@@ -45,16 +46,27 @@ func ExportAccounts(app *app.BNBBeaconChain, outputPath string) (err error) {
 	accounts := []*types.ExportedAccount{}
 	mtData := []mt.DataBlock{}
 	assets := types.ExportedAssets{}
+
 	appendAccount := func(acc sdk.Account) (stop bool) {
-		addr := acc.GetAddress()
-		coins := acc.GetCoins()
+		namedAcc := acc.(nodetypes.NamedAccount)
+		addr := namedAcc.GetAddress()
+		coins := namedAcc.GetCoins()
+		frozenCoins := namedAcc.GetFrozenCoins()
+		lockedCoins := namedAcc.GetLockedCoins()
 		for _, coin := range coins {
 			assets[coin.Denom] += coins.AmountOf(coin.Denom)
 		}
+		for _, coin := range frozenCoins {
+			assets[coin.Denom] += frozenCoins.AmountOf(coin.Denom)
+		}
+		for _, coin := range lockedCoins {
+			assets[coin.Denom] += lockedCoins.AmountOf(coin.Denom)
+		}
+
 		account := types.ExportedAccount{
 			Address:       addr,
-			AccountNumber: acc.GetAccountNumber(),
-			Coins:         acc.GetCoins(),
+			AccountNumber: namedAcc.GetAccountNumber(),
+			Coins:         coins,
 		}
 		accounts = append(accounts, &account)
 		mtData = append(mtData, &account)
