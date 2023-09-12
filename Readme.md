@@ -2,6 +2,6 @@
 
 ### Dump Accounts
 ```bash
-go build -o ./build/dump ./cmd/dump/...
+make build
 ./build/dump export ./output/state.json --home ${DATA_HOME}
 ```

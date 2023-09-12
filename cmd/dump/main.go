@@ -7,6 +7,7 @@ import (
 	"os"
 	"path"
 	"path/filepath"
+	"time"
 
 	"github.com/ethereum/go-ethereum/common"
 	"github.com/ethereum/go-ethereum/crypto"
@@ -57,7 +58,7 @@ func ExportAccounts(app *app.BNBBeaconChain, outputPath string) (err error) {
 		}
 		accounts = append(accounts, &account)
 		mtData = append(mtData, &account)
-
+		trace("address", acc.GetAddress(), "account:", account)
 		if err != nil {
 			fmt.Println(err)
 			return true
@@ -66,7 +67,10 @@ func ExportAccounts(app *app.BNBBeaconChain, outputPath string) (err error) {
 		return false
 	}
 
+	trace("iterate accounts...")
 	app.AccountKeeper.IterateAccounts(ctx, appendAccount)
+
+	trace("make merkle tree...")
 	// create a Merkle Tree config and set parallel run parameters
 	config := &mt.Config{
 		HashFunc:         NewHashFunc,
@@ -79,6 +83,8 @@ func ExportAccounts(app *app.BNBBeaconChain, outputPath string) (err error) {
 	if err != nil {
 		return err
 	}
+
+	trace("make proofs...")
 	proofs := tree.Proofs
 	exportedProof := make(types.ExportedProofs, len(proofs))
 	for i := 0; i < len(mtData); i++ {
@@ -88,6 +94,7 @@ func ExportAccounts(app *app.BNBBeaconChain, outputPath string) (err error) {
 			nProof = append(nProof, "0x"+common.Bytes2Hex(proof.Siblings[i]))
 		}
 		exportedProof[accounts[i].Address.String()] = nProof
+		trace("address:", accounts[i].Address.String(), "proof:", nProof)
 	}
 
 	genState := types.ExportedAccountState{
@@ -100,6 +107,7 @@ func ExportAccounts(app *app.BNBBeaconChain, outputPath string) (err error) {
 		Proofs:      exportedProof,
 	}
 
+	trace("write to file...")
 	// write the accounts to the file
 	file, err := os.OpenFile(outputPath, os.O_CREATE|os.O_WRONLY, os.ModePerm)
 	if err != nil {
@@ -190,6 +198,18 @@ func openTraceWriter(traceWriterFile string) (w io.Writer, err error) {
 	return
 }
 
+func trace(a ...any) {
+	if traceLog {
+		a = append([]any{"time:", time.Now()}, a...)
+		fmt.Println(a...)
+	}
+}
+
+var (
+	// TraceLog is a flag to print out full stack trace on errors
+	traceLog = false
+)
+
 func main() {
 	cdc := app.Codec
 	ctx := app.ServerContext
@@ -201,7 +221,7 @@ func main() {
 	}
 
 	rootCmd.AddCommand(ExportCmd(ctx.ToCosmosServerCtx(), cdc))
-
+	rootCmd.PersistentFlags().BoolVar(&traceLog, "tracelog", false, "print out full stack trace on errors")
 	// prepare and add flags
 	executor := cli.PrepareBaseCmd(rootCmd, "BC", app.DefaultNodeHome)
 	err := executor.Execute()
