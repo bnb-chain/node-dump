@@ -1,6 +1,7 @@
 package main
 
 import (
+	"encoding/json"
 	"fmt"
 	"io"
 	"os"
@@ -10,7 +11,6 @@ import (
 
 	"github.com/ethereum/go-ethereum/common"
 	"github.com/ethereum/go-ethereum/crypto"
-	json "github.com/json-iterator/go"
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
 
@@ -126,10 +126,58 @@ func ExportAccounts(app *app.BNBBeaconChain, outputPath string) (err error) {
 		return err
 	}
 	defer file.Close()
-
 	encoder := json.NewEncoder(file)
 	encoder.SetIndent("", "\t")
-	return encoder.Encode(genState)
+
+	file.WriteString(`{
+	"chain_id": "` + genState.ChainID + `",
+	"block_height": ` + fmt.Sprint(genState.BlockHeight) + `,
+	"commit_id": `)
+	err = encoder.Encode(genState.CommitID)
+	if err != nil {
+		return err
+	}
+	file.WriteString(`,
+	"state_root": "` + genState.StateRoot + `",
+	"assets": `)
+	err = encoder.Encode(genState.Assets)
+	if err != nil {
+		return err
+	}
+	file.WriteString(`,
+	"accounts": [
+	`)
+	for i, account := range genState.Accounts {
+		err = encoder.Encode(account)
+		if err != nil {
+			return err
+		}
+		if i < len(genState.Accounts)-1 {
+			file.WriteString(`,
+	`)
+		}
+	}
+
+	maxProofs := len(genState.Proofs) - 1
+	i := 0
+	file.WriteString(`
+	],
+	"proofs": {`)
+	for addr, proof := range genState.Proofs {
+		file.WriteString(`
+		"` + addr + `":`)
+		err = encoder.Encode(proof)
+		if err != nil {
+			return err
+		}
+		if i < maxProofs {
+			file.WriteString(`,`)
+		}
+		i++
+	}
+	file.WriteString(`}
+}`)
+	return nil
 }
 
 // ExportCmd dumps app state to JSON.
