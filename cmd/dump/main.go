@@ -75,7 +75,6 @@ func ExportAccounts(app *app.BNBBeaconChain, outputPath string) (err error) {
 	config := &mt.Config{
 		HashFunc:         NewHashFunc,
 		RunInParallel:    true,
-		NumRoutines:      4,
 		SortSiblingPairs: true,
 	}
 
