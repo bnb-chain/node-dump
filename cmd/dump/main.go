@@ -9,6 +9,7 @@ import (
 	"path/filepath"
 
 	"github.com/ethereum/go-ethereum/common"
+	"github.com/ethereum/go-ethereum/crypto"
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
 
@@ -30,6 +31,10 @@ import (
 const (
 	flagTraceStore = "trace-store"
 )
+
+func NewHashFunc(data []byte) ([]byte, error) {
+	return crypto.Keccak256(data), nil
+}
 
 // ExportAccounts exports blockchain world state to json.
 func ExportAccounts(app *app.BNBBeaconChain, outputPath string) (err error) {
@@ -64,6 +69,7 @@ func ExportAccounts(app *app.BNBBeaconChain, outputPath string) (err error) {
 	app.AccountKeeper.IterateAccounts(ctx, appendAccount)
 	// create a Merkle Tree config and set parallel run parameters
 	config := &mt.Config{
+		HashFunc:         NewHashFunc,
 		RunInParallel:    true,
 		NumRoutines:      4,
 		SortSiblingPairs: true,
