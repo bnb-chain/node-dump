@@ -21,7 +21,6 @@ import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
 
 	"github.com/bnb-chain/node/app"
-	"github.com/bnb-chain/node/wire"
 
 	mt "github.com/txaty/go-merkletree"
 
@@ -33,7 +32,7 @@ const (
 )
 
 // ExportAccounts exports blockchain world state to json.
-func ExportAccounts(app *app.BNBBeaconChain) (appState json.RawMessage, err error) {
+func ExportAccounts(app *app.BNBBeaconChain, outputPath string) (err error) {
 	ctx := app.NewContext(sdk.RunTxModeCheck, abci.Header{})
 
 	// iterate to get the accounts
@@ -72,7 +71,7 @@ func ExportAccounts(app *app.BNBBeaconChain) (appState json.RawMessage, err erro
 
 	tree, err := mt.New(config, mtData)
 	if err != nil {
-		return nil, err
+		return err
 	}
 	proofs := tree.Proofs
 	exportedProof := make(types.ExportedProofs, len(proofs))
@@ -94,11 +93,17 @@ func ExportAccounts(app *app.BNBBeaconChain) (appState json.RawMessage, err erro
 		StateRoot:   "0x" + common.Bytes2Hex(tree.Root),
 		Proofs:      exportedProof,
 	}
-	appState, err = wire.MarshalJSONIndent(app.Codec, genState)
+
+	// write the accounts to the file
+	file, err := os.OpenFile(outputPath, os.O_CREATE|os.O_WRONLY, os.ModePerm)
 	if err != nil {
-		return nil, err
+		return err
 	}
-	return appState, nil
+	defer file.Close()
+
+	encoder := json.NewEncoder(file)
+	encoder.SetIndent("", "\t")
+	return encoder.Encode(genState)
 }
 
 // ExportCmd dumps app state to JSON.
@@ -141,24 +146,11 @@ func ExportCmd(ctx *server.Context, cdc *codec.Codec) *cobra.Command {
 			}
 
 			dapp := app.NewBNBBeaconChain(ctx.Logger, db, traceWriter)
-			output, err := ExportAccounts(dapp)
+			err = ExportAccounts(dapp, args[0])
 			if err != nil {
 				return err
 			}
 
-			outputPath := args[0]
-			file, err := os.OpenFile(outputPath, os.O_CREATE|os.O_WRONLY|os.O_APPEND, os.ModePerm)
-			if err != nil {
-				return err
-			}
-			defer file.Close()
-
-			encoder := json.NewEncoder(file)
-			encoder.SetIndent("", "\t")
-			err = encoder.Encode(output)
-			if err != nil {
-				return err
-			}
 			return nil
 		},
 	}
