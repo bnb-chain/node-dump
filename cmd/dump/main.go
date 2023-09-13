@@ -53,6 +53,9 @@ func ExportAccounts(app *app.BNBBeaconChain, outputPath string) (err error) {
 		coins := namedAcc.GetCoins()
 		frozenCoins := namedAcc.GetFrozenCoins()
 		lockedCoins := namedAcc.GetLockedCoins()
+
+		summaryCoinsMap := map[string]sdk.Coin{}
+
 		for _, coin := range coins {
 			asset, exist := assets[coin.Denom]
 			if exist {
@@ -68,6 +71,11 @@ func ExportAccounts(app *app.BNBBeaconChain, outputPath string) (err error) {
 					Amount: coin.Amount,
 				}
 			}
+
+			sCoin := summaryCoinsMap[coin.Denom]
+			sCoin.Denom = coin.Denom
+			sCoin.Amount += coin.Amount
+			summaryCoinsMap[coin.Denom] = sCoin
 		}
 		for _, coin := range frozenCoins {
 			asset, exist := assets[coin.Denom]
@@ -84,6 +92,10 @@ func ExportAccounts(app *app.BNBBeaconChain, outputPath string) (err error) {
 					Amount: coin.Amount,
 				}
 			}
+			sCoin := summaryCoinsMap[coin.Denom]
+			sCoin.Denom = coin.Denom
+			sCoin.Amount += coin.Amount
+			summaryCoinsMap[coin.Denom] = sCoin
 		}
 		for _, coin := range lockedCoins {
 			asset, exist := assets[coin.Denom]
@@ -100,12 +112,24 @@ func ExportAccounts(app *app.BNBBeaconChain, outputPath string) (err error) {
 					Amount: coin.Amount,
 				}
 			}
+			sCoin := summaryCoinsMap[coin.Denom]
+			sCoin.Denom = coin.Denom
+			sCoin.Amount += coin.Amount
+			summaryCoinsMap[coin.Denom] = sCoin
+		}
+
+		summaryCoins := make(sdk.Coins, 0, len(summaryCoinsMap))
+		for _, coin := range summaryCoinsMap {
+			summaryCoins = append(summaryCoins, coin)
 		}
 
 		account := types.ExportedAccount{
 			Address:       addr,
 			AccountNumber: namedAcc.GetAccountNumber(),
-			Coins:         coins,
+			SummaryCoins:  summaryCoins.Sort(),
+			Coins:         coins.Sort(),
+			FrozenCoins:   frozenCoins.Sort(),
+			LockedCoins:   lockedCoins.Sort(),
 		}
 		accounts = append(accounts, &account)
 		mtData = append(mtData, &account)

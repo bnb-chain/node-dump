@@ -1,6 +1,7 @@
 package types
 
 import (
+	"bytes"
 	"math/big"
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
@@ -11,6 +12,7 @@ import (
 type ExportedAccount struct {
 	Address       sdk.AccAddress `json:"address"`
 	AccountNumber int64          `json:"account_number"`
+	SummaryCoins  sdk.Coins      `json:"summary_coins,omitempty"`
 	Coins         sdk.Coins      `json:"coins,omitempty"`
 	FrozenCoins   sdk.Coins      `json:"frozen_coins,omitempty"`
 	LockedCoins   sdk.Coins      `json:"locked_coins,omitempty"`
@@ -18,12 +20,17 @@ type ExportedAccount struct {
 
 // Serialize implements merkle tree data Serialize method.
 func (acc *ExportedAccount) Serialize() ([]byte, error) {
+	coinBytes := bytes.NewBuffer(nil)
+	for _, coin := range acc.SummaryCoins {
+		var b [32]byte
+		copy(b[:], coin.Denom)
+		coinBytes.Write(b[:])
+		coinBytes.Write(big.NewInt(coin.Amount).Bytes())
+	}
 	return crypto.Keccak256Hash(
 		acc.Address.Bytes(),
 		big.NewInt(acc.AccountNumber).Bytes(),
-		[]byte(acc.Coins.String()),
-		[]byte(acc.FrozenCoins.String()),
-		[]byte(acc.LockedCoins.String()),
+		coinBytes.Bytes(),
 	).Bytes(), nil
 }
 
