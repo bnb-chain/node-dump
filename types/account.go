@@ -42,8 +42,11 @@ type ExportedAsset struct {
 	Amount int64          `json:"amount"`
 }
 
-// ExportedProofs is a map of account address to merkle proof
-type ExportedProofs map[string][]string
+// ExportedProof is an exported proof.
+type ExportedProof struct {
+	Address sdk.AccAddress `json:"address"`
+	Proof   []string       `json:"proof"`
+}
 
 // ExportedAccountState is an exported account state.
 type ExportedAccountState struct {
@@ -53,5 +56,5 @@ type ExportedAccountState struct {
 	Accounts    []*ExportedAccount `json:"accounts"`
 	Assets      ExportedAssets     `json:"assets"`
 	StateRoot   string             `json:"state_root"`
-	Proofs      ExportedProofs     `json:"proofs"`
+	Proofs      []*ExportedProof   `json:"proofs"`
 }

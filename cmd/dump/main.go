@@ -160,14 +160,17 @@ func ExportAccounts(app *app.BNBBeaconChain, outputPath string) (err error) {
 
 	trace("make proofs...")
 	proofs := tree.Proofs
-	exportedProof := make(types.ExportedProofs, len(proofs))
+	exportedProof := make([]*types.ExportedProof, 0, len(proofs))
 	for i := 0; i < len(mtData); i++ {
 		proof := proofs[i]
 		nProof := make([]string, 0, len(proof.Siblings))
 		for i := 0; i < len(proof.Siblings); i++ {
 			nProof = append(nProof, "0x"+common.Bytes2Hex(proof.Siblings[i]))
 		}
-		exportedProof[accounts[i].Address.String()] = nProof
+		exportedProof = append(exportedProof, &types.ExportedProof{
+			Address: accounts[i].Address,
+			Proof:   nProof,
+		})
 		trace("address:", accounts[i].Address.String(), "proof:", nProof)
 	}
 
@@ -225,10 +228,8 @@ func ExportAccounts(app *app.BNBBeaconChain, outputPath string) (err error) {
 	i := 0
 	file.WriteString(`
 	],
-	"proofs": {`)
-	for addr, proof := range genState.Proofs {
-		file.WriteString(`
-		"` + addr + `":`)
+	"proofs": [`)
+	for _, proof := range genState.Proofs {
 		err = encoder.Encode(proof)
 		if err != nil {
 			return err
@@ -238,7 +239,7 @@ func ExportAccounts(app *app.BNBBeaconChain, outputPath string) (err error) {
 		}
 		i++
 	}
-	file.WriteString(`}
+	file.WriteString(`]
 }`)
 	return nil
 }
