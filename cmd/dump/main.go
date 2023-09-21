@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"io"
+	"math/big"
 	"os"
 	"path"
 	"path/filepath"
@@ -36,6 +37,24 @@ const (
 
 func NewHashFunc(data []byte) ([]byte, error) {
 	return crypto.Keccak256(data), nil
+}
+
+type leafNode struct {
+	Address sdk.AccAddress `json:"address"`
+	Index   int64          `json:"index"`
+	Coin    sdk.Coin       `json:"coin"`
+}
+
+// Serialize implements merkle tree data Serialize method.
+func (node *leafNode) Serialize() ([]byte, error) {
+	var symbol [32]byte
+	copy(symbol[:], node.Coin.Denom)
+	return crypto.Keccak256Hash(
+		node.Address.Bytes(),
+		big.NewInt(node.Index).Bytes(),
+		symbol[:],
+		big.NewInt(node.Coin.Amount).Bytes(),
+	).Bytes(), nil
 }
 
 // ExportAccounts exports blockchain world state to json.
@@ -132,7 +151,17 @@ func ExportAccounts(app *app.BNBBeaconChain, outputPath string) (err error) {
 			LockedCoins:   lockedCoins.Sort(),
 		}
 		accounts = append(accounts, &account)
-		mtData = append(mtData, &account)
+
+		for index := range summaryCoins {
+			if summaryCoins[index].Amount > 0 {
+				mtData = append(mtData, &leafNode{
+					Address: addr,
+					Index:   int64(index),
+					Coin:    summaryCoins[index],
+				})
+			}
+		}
+
 		trace("address", acc.GetAddress(), "account:", account)
 		if err != nil {
 			fmt.Println(err)
@@ -160,6 +189,7 @@ func ExportAccounts(app *app.BNBBeaconChain, outputPath string) (err error) {
 
 	trace("make proofs...")
 	proofs := tree.Proofs
+	maxProofLength := 0
 	exportedProof := make([]*types.ExportedProof, 0, len(proofs))
 	for i := 0; i < len(mtData); i++ {
 		proof := proofs[i]
@@ -167,12 +197,20 @@ func ExportAccounts(app *app.BNBBeaconChain, outputPath string) (err error) {
 		for i := 0; i < len(proof.Siblings); i++ {
 			nProof = append(nProof, "0x"+common.Bytes2Hex(proof.Siblings[i]))
 		}
+
+		leaf := mtData[i].(*leafNode)
 		exportedProof = append(exportedProof, &types.ExportedProof{
-			Address: accounts[i].Address,
+			Address: leaf.Address,
+			Index:   leaf.Index,
+			Coin:    leaf.Coin,
 			Proof:   nProof,
 		})
+		if len(proofs) > maxProofLength {
+			maxProofLength = len(proofs)
+		}
 		trace("address:", accounts[i].Address.String(), "proof:", nProof)
 	}
+	trace("max proof length:", maxProofLength)
 
 	genState := types.ExportedAccountState{
 		ChainID:     app.CheckState.Ctx.ChainID(),
@@ -186,68 +224,82 @@ func ExportAccounts(app *app.BNBBeaconChain, outputPath string) (err error) {
 
 	trace("write to file...")
 
-	// write the accounts to the file
-	file, err := os.OpenFile(outputPath, os.O_CREATE|os.O_WRONLY, os.ModePerm)
+	// write the state to the file
+	baseFile, err := os.OpenFile(path.Join(outputPath, "base.json"), os.O_CREATE|os.O_WRONLY, os.ModePerm)
 	if err != nil {
 		return err
 	}
-	defer file.Close()
+	defer baseFile.Close()
+	err = writeJSONFile(baseFile, genState)
+	if err != nil {
+		return err
+	}
+
+	// write the accounts to the file
+	accountFile, err := os.OpenFile(path.Join(outputPath, "accounts.json"), os.O_CREATE|os.O_WRONLY, os.ModePerm)
+	if err != nil {
+		return err
+	}
+	defer accountFile.Close()
+	err = writeJSONFileInStream(accountFile, func(encoder *json.Encoder) error {
+		for i, account := range genState.Accounts {
+			err := encoder.Encode(account)
+			if err != nil {
+				return err
+			}
+			if i < len(accounts)-1 {
+				accountFile.WriteString(`,`)
+			}
+		}
+		return nil
+	})
+	if err != nil {
+		return err
+	}
+
+	// write the proofs to the file
+	proofFile, err := os.OpenFile(path.Join(outputPath, "proofs.json"), os.O_CREATE|os.O_WRONLY, os.ModePerm)
+	if err != nil {
+		return err
+	}
+	defer proofFile.Close()
+	err = writeJSONFileInStream(proofFile, func(encoder *json.Encoder) error {
+		for i, proof := range genState.Proofs {
+			err := encoder.Encode(proof)
+			if err != nil {
+				return err
+			}
+			if i < len(proofs)-1 {
+				proofFile.WriteString(`,`)
+			}
+		}
+		return nil
+	})
+	if err != nil {
+		return err
+	}
+
+	return nil
+}
+
+func writeJSONFile(file *os.File, data interface{}) error {
 	encoder := json.NewEncoder(file)
 	encoder.SetIndent("", "\t")
-
-	file.WriteString(`{
-	"chain_id": "` + genState.ChainID + `",
-	"block_height": ` + fmt.Sprint(genState.BlockHeight) + `,
-	"commit_id": `)
-	err = encoder.Encode(genState.CommitID)
-	if err != nil {
-		return err
-	}
-	file.WriteString(`,
-	"state_root": "` + genState.StateRoot + `",
-	"assets": `)
-	err = encoder.Encode(genState.Assets)
-	if err != nil {
-		return err
-	}
-	file.WriteString(`,
-	"accounts": [
-	`)
-	for i, account := range genState.Accounts {
-		err = encoder.Encode(account)
-		if err != nil {
-			return err
-		}
-		if i < len(genState.Accounts)-1 {
-			file.WriteString(`,
-	`)
-		}
-	}
-
-	maxProofs := len(genState.Proofs) - 1
-	i := 0
-	file.WriteString(`
-	],
-	"proofs": [`)
-	for _, proof := range genState.Proofs {
-		err = encoder.Encode(proof)
-		if err != nil {
-			return err
-		}
-		if i < maxProofs {
-			file.WriteString(`,`)
-		}
-		i++
-	}
-	file.WriteString(`]
-}`)
+	return encoder.Encode(data)
+}
+func writeJSONFileInStream(file *os.File, marshal func(*json.Encoder) error) error {
+	encoder := json.NewEncoder(file)
+	encoder.SetIndent("", "\t")
+	file.WriteString(`[`)
+	marshal(encoder)
+	file.WriteString(`]`)
 	return nil
 }
 
 // ExportCmd dumps app state to JSON.
 func ExportCmd(ctx *server.Context, cdc *codec.Codec) *cobra.Command {
 	return &cobra.Command{
-		Use:   "export <path/state.json>",
+		Use:   "export <path>",
 		Short: "Export state to JSON",
 		RunE: func(cmd *cobra.Command, args []string) error {
 			if len(args) != 1 {
