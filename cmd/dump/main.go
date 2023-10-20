@@ -51,9 +51,9 @@ func (node *leafNode) Serialize() ([]byte, error) {
 	copy(symbol[:], node.Coin.Denom)
 	return crypto.Keccak256Hash(
 		node.Address.Bytes(),
-		big.NewInt(node.Index).Bytes(),
+		big.NewInt(node.Index).FillBytes(make([]byte, 32)),
 		symbol[:],
-		big.NewInt(node.Coin.Amount).Bytes(),
+		big.NewInt(node.Coin.Amount).FillBytes(make([]byte, 32)),
 	).Bytes(), nil
 }
 
