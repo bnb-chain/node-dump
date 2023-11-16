@@ -41,7 +41,6 @@ func NewHashFunc(data []byte) ([]byte, error) {
 
 type leafNode struct {
 	Address sdk.AccAddress `json:"address"`
-	Index   int64          `json:"index"`
 	Coin    sdk.Coin       `json:"coin"`
 }
 
@@ -51,7 +50,6 @@ func (node *leafNode) Serialize() ([]byte, error) {
 	copy(symbol[:], node.Coin.Denom)
 	return crypto.Keccak256Hash(
 		node.Address.Bytes(),
-		big.NewInt(node.Index).FillBytes(make([]byte, 32)),
 		symbol[:],
 		big.NewInt(node.Coin.Amount).FillBytes(make([]byte, 32)),
 	).Bytes(), nil
@@ -156,7 +154,6 @@ func ExportAccounts(app *app.BNBBeaconChain, outputPath string) (err error) {
 			if summaryCoins[index].Amount > 0 {
 				mtData = append(mtData, &leafNode{
 					Address: addr,
-					Index:   int64(index),
 					Coin:    summaryCoins[index],
 				})
 			}
@@ -201,7 +198,6 @@ func ExportAccounts(app *app.BNBBeaconChain, outputPath string) (err error) {
 		leaf := mtData[i].(*leafNode)
 		exportedProof = append(exportedProof, &types.ExportedProof{
 			Address: leaf.Address,
-			Index:   leaf.Index,
 			Coin:    leaf.Coin,
 			Proof:   nProof,
 		})
