@@ -143,8 +143,8 @@ func ExportAccounts(app *app.BNBBeaconChain, outputPath string) (err error) {
 		account := types.ExportedAccount{
 			Address:       addr,
 			AccountNumber: namedAcc.GetAccountNumber(),
-			SummaryCoins:  summaryCoins.Sort(),
-			Coins:         coins.Sort(),
+			Coins:         summaryCoins.Sort(),
+			FreeCoins:     coins.Sort(),
 			FrozenCoins:   frozenCoins.Sort(),
 			LockedCoins:   lockedCoins.Sort(),
 		}
