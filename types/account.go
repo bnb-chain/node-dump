@@ -25,7 +25,6 @@ type ExportedAsset struct {
 // ExportedProof is an exported proof.
 type ExportedProof struct {
 	Address sdk.AccAddress `json:"address"`
-	Index   int64          `json:"index"`
 	Coin    sdk.Coin       `json:"coin"`
 	Proof   []string       `json:"proof"`
 }

@@ -1,6 +1,6 @@
 module github.com/bnb-chain/node-dump
 
-go 1.21.0
+go 1.21
 
 replace (
 	github.com/Shopify/sarama v1.26.1 => github.com/Shopify/sarama v1.21.0
