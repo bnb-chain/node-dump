@@ -71,9 +71,10 @@ func ExportAccounts(app *app.BNBBeaconChain, outputPath string) (err error) {
 		frozenCoins := namedAcc.GetFrozenCoins()
 		lockedCoins := namedAcc.GetLockedCoins()
 
-		summaryCoinsMap := map[string]sdk.Coin{}
+		allCoins := coins.Plus(frozenCoins)
+		allCoins = allCoins.Plus(lockedCoins)
 
-		for _, coin := range coins {
+		for _, coin := range allCoins {
 			asset, exist := assets[coin.Denom]
 			if exist {
 				asset.Amount += coin.Amount
@@ -88,82 +89,28 @@ func ExportAccounts(app *app.BNBBeaconChain, outputPath string) (err error) {
 					Amount: coin.Amount,
 				}
 			}
-
-			sCoin := summaryCoinsMap[coin.Denom]
-			sCoin.Denom = coin.Denom
-			sCoin.Amount += coin.Amount
-			summaryCoinsMap[coin.Denom] = sCoin
-		}
-		for _, coin := range frozenCoins {
-			asset, exist := assets[coin.Denom]
-			if exist {
-				asset.Amount += coin.Amount
-			} else {
-				token, err := app.TokenMapper.GetToken(ctx, coin.Denom)
-				if err != nil {
-					trace(err)
-					return true
-				}
-				assets[coin.Denom] = &types.ExportedAsset{
-					Owner:  token.GetOwner(),
-					Amount: coin.Amount,
-				}
-			}
-			sCoin := summaryCoinsMap[coin.Denom]
-			sCoin.Denom = coin.Denom
-			sCoin.Amount += coin.Amount
-			summaryCoinsMap[coin.Denom] = sCoin
-		}
-		for _, coin := range lockedCoins {
-			asset, exist := assets[coin.Denom]
-			if exist {
-				asset.Amount += coin.Amount
-			} else {
-				token, err := app.TokenMapper.GetToken(ctx, coin.Denom)
-				if err != nil {
-					trace(err)
-					return true
-				}
-				assets[coin.Denom] = &types.ExportedAsset{
-					Owner:  token.GetOwner(),
-					Amount: coin.Amount,
-				}
-			}
-			sCoin := summaryCoinsMap[coin.Denom]
-			sCoin.Denom = coin.Denom
-			sCoin.Amount += coin.Amount
-			summaryCoinsMap[coin.Denom] = sCoin
-		}
-
-		summaryCoins := make(sdk.Coins, 0, len(summaryCoinsMap))
-		for _, coin := range summaryCoinsMap {
-			summaryCoins = append(summaryCoins, coin)
 		}
 
 		account := types.ExportedAccount{
 			Address:       addr,
 			AccountNumber: namedAcc.GetAccountNumber(),
-			Coins:         summaryCoins.Sort(),
+			Coins:         allCoins.Sort(),
 			FreeCoins:     coins.Sort(),
 			FrozenCoins:   frozenCoins.Sort(),
 			LockedCoins:   lockedCoins.Sort(),
 		}
 		accounts = append(accounts, &account)
 
-		for index := range summaryCoins {
-			if summaryCoins[index].Amount > 0 {
+		for index := range allCoins {
+			if allCoins[index].Amount > 0 {
 				mtData = append(mtData, &leafNode{
 					Address: addr,
-					Coin:    summaryCoins[index],
+					Coin:    allCoins[index],
 				})
 			}
 		}
 
 		trace("address", acc.GetAddress(), "account:", account)
-		if err != nil {
-			fmt.Println(err)
-			return true
-		}
 
 		return false
 	}
@@ -191,8 +138,8 @@ func ExportAccounts(app *app.BNBBeaconChain, outputPath string) (err error) {
 	for i := 0; i < len(mtData); i++ {
 		proof := proofs[i]
 		nProof := make([]string, 0, len(proof.Siblings))
-		for i := 0; i < len(proof.Siblings); i++ {
-			nProof = append(nProof, "0x"+common.Bytes2Hex(proof.Siblings[i]))
+		for j := 0; j < len(proof.Siblings); j++ {
+			nProof = append(nProof, "0x"+common.Bytes2Hex(proof.Siblings[j]))
 		}
 
 		leaf := mtData[i].(*leafNode)
@@ -239,12 +186,15 @@ func ExportAccounts(app *app.BNBBeaconChain, outputPath string) (err error) {
 	defer accountFile.Close()
 	err = writeJSONFileInStream(accountFile, func(encoder *json.Encoder) error {
 		for i, account := range genState.Accounts {
-			err := encoder.Encode(account)
+			err = encoder.Encode(account)
 			if err != nil {
 				return err
 			}
 			if i < len(accounts)-1 {
-				accountFile.WriteString(`,`)
+				_, err = accountFile.WriteString(`,`)
+				if err != nil {
+					return err
+				}
 			}
 		}
 		return nil
@@ -261,12 +211,15 @@ func ExportAccounts(app *app.BNBBeaconChain, outputPath string) (err error) {
 	defer proofFile.Close()
 	err = writeJSONFileInStream(proofFile, func(encoder *json.Encoder) error {
 		for i, proof := range genState.Proofs {
-			err := encoder.Encode(proof)
+			err = encoder.Encode(proof)
 			if err != nil {
 				return err
 			}
 			if i < len(proofs)-1 {
-				proofFile.WriteString(`,`)
+				_, err = proofFile.WriteString(`,`)
+				if err != nil {
+					return err
+				}
 			}
 		}
 		return nil
@@ -286,9 +239,15 @@ func writeJSONFile(file *os.File, data interface{}) error {
 func writeJSONFileInStream(file *os.File, marshal func(*json.Encoder) error) error {
 	encoder := json.NewEncoder(file)
 	encoder.SetIndent("", "\t")
-	file.WriteString(`[`)
-	marshal(encoder)
-	file.WriteString(`]`)
+	if _, err := file.WriteString(`[`); err != nil {
+		return err
+	}
+	if err := marshal(encoder); err != nil {
+		return err
+	}
+	if _, err := file.WriteString(`]`); err != nil {
+		return err
+	}
 	return nil
 }
 
