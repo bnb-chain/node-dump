@@ -48,11 +48,17 @@ type leafNode struct {
 func (node *leafNode) Serialize() ([]byte, error) {
 	var symbol [32]byte
 	copy(symbol[:], node.Coin.Denom)
-	return crypto.Keccak256Hash(
+	return crypto.Keccak256(
 		node.Address.Bytes(),
 		symbol[:],
 		big.NewInt(node.Coin.Amount).FillBytes(make([]byte, 32)),
-	).Bytes(), nil
+	), nil
+}
+
+func (node *leafNode) Print() string {
+	buf, _ := node.Serialize()
+
+	return "0x" + common.Bytes2Hex(crypto.Keccak256(buf))
 }
 
 // ExportAccounts exports blockchain world state to json.
@@ -121,9 +127,10 @@ func ExportAccounts(app *app.BNBBeaconChain, outputPath string) (err error) {
 	trace("make merkle tree...")
 	// create a Merkle Tree config and set parallel run parameters
 	config := &mt.Config{
-		HashFunc:         NewHashFunc,
-		RunInParallel:    true,
-		SortSiblingPairs: true,
+		HashFunc:           NewHashFunc,
+		RunInParallel:      true,
+		SortSiblingPairs:   true,
+		DisableLeafHashing: true,
 	}
 
 	tree, err := mt.New(config, mtData)
@@ -135,6 +142,7 @@ func ExportAccounts(app *app.BNBBeaconChain, outputPath string) (err error) {
 	proofs := tree.Proofs
 	maxProofLength := 0
 	exportedProof := make([]*types.ExportedProof, 0, len(proofs))
+	trace("proofs length", len(proofs))
 	for i := 0; i < len(mtData); i++ {
 		proof := proofs[i]
 		nProof := make([]string, 0, len(proof.Siblings))
@@ -148,10 +156,10 @@ func ExportAccounts(app *app.BNBBeaconChain, outputPath string) (err error) {
 			Coin:    leaf.Coin,
 			Proof:   nProof,
 		})
-		if len(proofs) > maxProofLength {
-			maxProofLength = len(proofs)
+		if proofLength := len(proof.Siblings); proofLength > maxProofLength {
+			maxProofLength = proofLength
 		}
-		trace("address:", accounts[i].Address.String(), "proof:", nProof)
+		trace("address:", accounts[i].Address.String(), "proof:", nProof, "leaf:", leaf.Print())
 	}
 	trace("max proof length:", maxProofLength)
 
