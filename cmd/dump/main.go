@@ -61,14 +61,22 @@ func (node *leafNode) Print() string {
 	return "0x" + common.Bytes2Hex(crypto.Keccak256(buf))
 }
 
-// ExportAccounts exports blockchain world state to json.
-func ExportAccounts(app *app.BNBBeaconChain, outputPath string) (err error) {
+// ExportAccountsBalanceWithProof exports blockchain world state to json.
+func ExportAccountsBalanceWithProof(app *app.BNBBeaconChain, outputPath string) (err error) {
 	ctx := app.NewContext(sdk.RunTxModeCheck, abci.Header{})
+
+	allowedTokens := make(map[string]struct{})
+	tokens := app.TokenMapper.GetTokenList(ctx, false, true)
+	for _, token := range tokens {
+		if token.GetContractAddress() != "" {
+			allowedTokens[token.GetSymbol()] = struct{}{}
+		}
+	}
+	allowedTokens["BNB"] = struct{}{}
 
 	// iterate to get the accounts
 	accounts := []*types.ExportedAccount{}
 	mtData := []mt.DataBlock{}
-	assets := types.ExportedAssets{}
 
 	appendAccount := func(acc sdk.Account) (stop bool) {
 		namedAcc := acc.(nodetypes.NamedAccount)
@@ -80,34 +88,19 @@ func ExportAccounts(app *app.BNBBeaconChain, outputPath string) (err error) {
 		allCoins := coins.Plus(frozenCoins)
 		allCoins = allCoins.Plus(lockedCoins)
 
-		for _, coin := range allCoins {
-			asset, exist := assets[coin.Denom]
-			if exist {
-				asset.Amount += coin.Amount
-			} else {
-				token, err := app.TokenMapper.GetToken(ctx, coin.Denom)
-				if err != nil {
-					trace(err)
-					return true
-				}
-				assets[coin.Denom] = &types.ExportedAsset{
-					Owner:  token.GetOwner(),
-					Amount: coin.Amount,
-				}
-			}
-		}
-
 		account := types.ExportedAccount{
 			Address:       addr,
 			AccountNumber: namedAcc.GetAccountNumber(),
 			Coins:         allCoins.Sort(),
-			FreeCoins:     coins.Sort(),
-			FrozenCoins:   frozenCoins.Sort(),
-			LockedCoins:   lockedCoins.Sort(),
 		}
 		accounts = append(accounts, &account)
 
 		for index := range allCoins {
+			if _, allowed := allowedTokens[allCoins[index].Denom]; !allowed {
+				// skip if not cross-chain token
+				continue
+			}
+
 			if allCoins[index].Amount > 0 {
 				mtData = append(mtData, &leafNode{
 					Address: addr,
@@ -168,7 +161,6 @@ func ExportAccounts(app *app.BNBBeaconChain, outputPath string) (err error) {
 		BlockHeight: app.LastBlockHeight(),
 		CommitID:    app.LastCommitID(),
 		Accounts:    accounts,
-		Assets:      assets,
 		StateRoot:   "0x" + common.Bytes2Hex(tree.Root),
 		Proofs:      exportedProof,
 	}
@@ -299,7 +291,7 @@ func ExportCmd(ctx *server.Context, cdc *codec.Codec) *cobra.Command {
 			}
 
 			dapp := app.NewBNBBeaconChain(ctx.Logger, db, traceWriter)
-			err = ExportAccounts(dapp, args[0])
+			err = ExportAccountsBalanceWithProof(dapp, args[0])
 			if err != nil {
 				return err
 			}
