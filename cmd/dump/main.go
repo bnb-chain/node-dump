@@ -96,10 +96,10 @@ func ExportAccountsBalanceWithProof(app *app.BNBBeaconChain, outputPath string) 
 		accounts = append(accounts, &account)
 
 		for index := range allCoins {
-			if _, allowed := allowedTokens[allCoins[index].Denom]; !allowed {
-				// skip if not cross-chain token
-				continue
-			}
+			// if _, allowed := allowedTokens[allCoins[index].Denom]; !allowed {
+			// 	// skip if not cross-chain token
+			// 	continue
+			// }
 
 			if allCoins[index].Amount > 0 {
 				mtData = append(mtData, &leafNode{
