@@ -152,7 +152,7 @@ func ExportAccountsBalanceWithProof(app *app.BNBBeaconChain, outputPath string) 
 		if proofLength := len(proof.Siblings); proofLength > maxProofLength {
 			maxProofLength = proofLength
 		}
-		trace("address:", accounts[i].Address.String(), "proof:", nProof, "leaf:", leaf.Print())
+		trace("address:", leaf.Address.String(), "proof:", nProof, "leaf:", leaf.Print())
 	}
 	trace("max proof length:", maxProofLength)
 
