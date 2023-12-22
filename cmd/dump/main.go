@@ -65,15 +65,6 @@ func (node *leafNode) Print() string {
 func ExportAccountsBalanceWithProof(app *app.BNBBeaconChain, outputPath string) (err error) {
 	ctx := app.NewContext(sdk.RunTxModeCheck, abci.Header{})
 
-	allowedTokens := make(map[string]struct{})
-	tokens := app.TokenMapper.GetTokenList(ctx, false, true)
-	for _, token := range tokens {
-		if token.GetContractAddress() != "" {
-			allowedTokens[token.GetSymbol()] = struct{}{}
-		}
-	}
-	allowedTokens["BNB"] = struct{}{}
-
 	// iterate to get the accounts
 	accounts := []*types.ExportedAccount{}
 	mtData := []mt.DataBlock{}
@@ -96,11 +87,6 @@ func ExportAccountsBalanceWithProof(app *app.BNBBeaconChain, outputPath string) 
 		accounts = append(accounts, &account)
 
 		for index := range allCoins {
-			if _, allowed := allowedTokens[allCoins[index].Denom]; !allowed {
-				// skip if not cross-chain token
-				continue
-			}
-
 			if allCoins[index].Amount > 0 {
 				mtData = append(mtData, &leafNode{
 					Address: addr,
