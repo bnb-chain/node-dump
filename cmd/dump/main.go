@@ -16,6 +16,7 @@ import (
 	"github.com/spf13/viper"
 
 	abci "github.com/tendermint/tendermint/abci/types"
+	tmCrypto "github.com/tendermint/tendermint/crypto"
 	"github.com/tendermint/tendermint/libs/cli"
 	dbm "github.com/tendermint/tendermint/libs/db"
 
@@ -65,6 +66,47 @@ func (node *leafNode) Print() string {
 func ExportAccountsBalanceWithProof(app *app.BNBBeaconChain, outputPath string) (err error) {
 	ctx := app.NewContext(sdk.RunTxModeCheck, abci.Header{})
 
+	// Escrow Accounts
+	escrowAccs := make(map[string]struct{})
+	// bnb prefix address: bnb1vu5max8wqn997ayhrrys0drpll2rlz4dh39s3h
+	// tbnb prefix address: tbnb1vu5max8wqn997ayhrrys0drpll2rlz4deyv53x
+	depositedCoinsAccAddr := sdk.AccAddress(tmCrypto.AddressHash([]byte("BinanceChainDepositedCoins")))
+	// bnb prefix address: bnb1j725qk29cv4kwpers4addy9x93ukhw7czfkjaj
+	// tbnb prefix address: tbnb1j725qk29cv4kwpers4addy9x93ukhw7cvulkar
+	delegationAccAddr := sdk.AccAddress(tmCrypto.AddressHash([]byte("BinanceChainStakeDelegation")))
+	// bnb prefix address: bnb1v8vkkymvhe2sf7gd2092ujc6hweta38xadu2pj
+	// tbnb prefix address: tbnb1v8vkkymvhe2sf7gd2092ujc6hweta38xnc4wpr
+	pegAccount := sdk.AccAddress(tmCrypto.AddressHash([]byte("BinanceChainPegAccount")))
+	// bnb prefix address: bnb1wxeplyw7x8aahy93w96yhwm7xcq3ke4f8ge93u
+	// tbnb prefix address: tbnb1wxeplyw7x8aahy93w96yhwm7xcq3ke4ffasp3d
+	atomicSwapCoinsAccAddr := sdk.AccAddress(tmCrypto.AddressHash([]byte("BinanceChainAtomicSwapCoins")))
+	// bnb prefix address: bnb1hn8ym9xht925jkncjpf7lhjnax6z8nv24fv2yq
+	// tbnb prefix address: tbnb1hn8ym9xht925jkncjpf7lhjnax6z8nv2mu9wy3
+	timeLockCoinsAccAddr := sdk.AccAddress(tmCrypto.AddressHash([]byte("BinanceChainTimeLockCoins")))
+	// nil address
+	emptyAccAddr := sdk.AccAddress(tmCrypto.AddressHash([]byte(nil)))
+	// 0x0000... address
+	zeroAccAddr, err := sdk.AccAddressFromHex("0000000000000000000000000000000000000000")
+	if err != nil {
+		return err
+	}
+	trace("escrow accounts",
+		"depositedCoinsAccAddr:", depositedCoinsAccAddr.String(),
+		"delegationAccAddr:", delegationAccAddr.String(),
+		"pegAccount:", pegAccount.String(),
+		"atomicSwapCoinsAccAddr:", atomicSwapCoinsAccAddr.String(),
+		"timeLockCoinsAccAddr:", timeLockCoinsAccAddr.String(),
+		"emptyAccAddr:", emptyAccAddr.String(),
+		"zeroAccAddr:", zeroAccAddr.String(),
+	)
+	escrowAccs[depositedCoinsAccAddr.String()] = struct{}{}
+	escrowAccs[delegationAccAddr.String()] = struct{}{}
+	escrowAccs[pegAccount.String()] = struct{}{}
+	escrowAccs[atomicSwapCoinsAccAddr.String()] = struct{}{}
+	escrowAccs[timeLockCoinsAccAddr.String()] = struct{}{}
+	escrowAccs[emptyAccAddr.String()] = struct{}{}
+	escrowAccs[zeroAccAddr.String()] = struct{}{}
+
 	// iterate to get the accounts
 	accounts := []*types.ExportedAccount{}
 	mtData := []mt.DataBlock{}
@@ -72,6 +114,11 @@ func ExportAccountsBalanceWithProof(app *app.BNBBeaconChain, outputPath string) 
 	appendAccount := func(acc sdk.Account) (stop bool) {
 		namedAcc := acc.(nodetypes.NamedAccount)
 		addr := namedAcc.GetAddress()
+		if _, exist := escrowAccs[addr.String()]; exist {
+			trace("skip escrow account:", addr.String())
+			return false
+		}
+
 		coins := namedAcc.GetCoins()
 		frozenCoins := namedAcc.GetFrozenCoins()
 		lockedCoins := namedAcc.GetLockedCoins()
@@ -222,6 +269,7 @@ func writeJSONFile(file *os.File, data interface{}) error {
 	encoder.SetIndent("", "\t")
 	return encoder.Encode(data)
 }
+
 func writeJSONFileInStream(file *os.File, marshal func(*json.Encoder) error) error {
 	encoder := json.NewEncoder(file)
 	encoder.SetIndent("", "\t")
