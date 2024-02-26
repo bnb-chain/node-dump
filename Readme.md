@@ -9,10 +9,71 @@ Following the BC-Fusion plan, the BNB Beacon Chain has been officially decommiss
 
 This tool serves the purpose of dumping the state of the BNB Beacon Chain and generating Merkle tree proofs for user accounts.
 
-### Dump Accounts and Generate Merkle Tree Proofs
-```bash
-```bash
-make build
-mkdir -p ./output
-./build/dump export ./output/state.json --home ${DATA_HOME}
-```
+## Archived Data(coming soon)
+
+The following data is available for download:
+
+### BNB Beacon Chain Node
+
+#### Mainnet
+
+| Field |Value |
+| --- | --- |
+| Chain ID | `Binance-Chain-Tigris` |
+| Commit Hash | `TBD` |
+| Version | [TBD](https://...) |
+| Block | [TBD](https://...) (TBD) |
+| S3 Link | `TBD` |
+| Greenfield Link | `TBD` |
+| Arweave Link | `TBD` |
+| Size | TBD |
+| SHA256 | `TBD` |
+
+#### Testnet
+
+| Field |Value |
+| --- | --- |
+| Chain ID | `Binance-Chain-Ganges` |
+| Commit Hash | `TBD` |
+| Version | [TBD](https://...) |
+| Block | [TBD](https://...) (TBD) |
+| S3 Link | `TBD` |
+| Greenfield Link | `TBD` |
+| Arweave Link | `TBD` |
+| Size | TBD |
+| SHA256 | `TBD` |
+
+### Merkle Proofs of User Accounts
+
+#### Mainnet
+
+| Field |Value |
+| --- | --- |
+| Chain ID | `Binance-Chain-Tigris` |
+| Commit Hash | `TBD` |
+| Version | [TBD](https://...) |
+| Block | [TBD](https://...) (TBD) |
+| S3 Link | `TBD` |
+| Greenfield Link | `TBD` |
+| Arweave Link | `TBD` |
+| Size | TBD |
+| SHA256 | `TBD` |
+
+#### Testnet
+
+| Field |Value |
+| --- | --- |
+| Chain ID | `Binance-Chain-Ganges` |
+| Commit Hash | `TBD` |
+| Version | [TBD](https://...) |
+| Block | [TBD](https://...) (TBD) |
+| S3 Link | `TBD` |
+| Greenfield Link | `TBD` |
+| Arweave Link | `TBD` |
+| Size | TBD |
+| SHA256 | `TBD` |
+
+## Verification
+
+The verification tool is available at [token-recover-approver](https://github.com/bnb-chain/token-recover-approver).
+Please refer to the [verification guide](./docs/verification.md) for more details.
