@@ -547,6 +547,7 @@ func VerificationCmd(ctx *server.Context, cdc *codec.Codec) *cobra.Command {
 			if err != nil {
 				return err
 			}
+			fmt.Println("Verification passed")
 
 			return nil
 		},
