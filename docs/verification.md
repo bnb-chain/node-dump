@@ -16,14 +16,14 @@ Get the link from the data provider and download the data to the local machine.
 refer to [readme.md](../Readme.md) for more details.
 - **NODE_DATA_PATH**: the path of the BNB Beacon Chain Node data
 - **ARCHIVED_PROOF_PATH**: the path of the Merkle Proofs of User Accounts data
-
 ```bash
 ## BNB Beacon Chain Node
 mkdir -p ${NODE_DATA_PATH}
-wget $NODE_DATA_LINK -O - | tar -xzvf -C ${NODE_DATA_PATH}
+wget -qO- $NODE_DATA_LINK | tar -zxvf - -C ${NODE_DATA_PATH}
+
 ## Merkle Proofs of User Accounts
 mkdir -p ${ARCHIVED_PROOF_PATH}
-wget $MERKLE_PROOF_DATA_LINK -O - | tar -xzvf -C ${ARCHIVED_PROOF_PATH}
+wget -qO- $MERKLE_PROOF_DATA_LINK | tar -zxvf - -C ${ARCHIVED_PROOF_PATH}
 ```
 
 ## Verify Proofs Data
