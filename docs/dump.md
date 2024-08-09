@@ -13,21 +13,3 @@ wget $NODE_DATA_LINK -O - | tar -xz -C ${DATA_HOME}
 make build
 mkdir -p ./output
 ./build/dump export ./output/ --home ${DATA_HOME}
-
-## tar and compress the output
-tar -zcvf ArchivedMerkleProof.tar.gz ./output
-```
-
-## Upload to S3
-
-```bash
-aws s3 cp ./ArchivedMerkleProof.tar.gz s3://<bucket-name>/ArchivedMerkleProof.tar.gz
-```
-
-## Upload to Greenfield
-
-```bash
-gnfd-cmd object put ./ArchivedMerkleProof.tar.gz gnfd://<bucket-name>
-```
-
-## Upload to Arweave (coming soon)
