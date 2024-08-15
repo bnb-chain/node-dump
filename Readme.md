@@ -9,7 +9,7 @@ Following the BC-Fusion plan, the BNB Beacon Chain has been officially decommiss
 
 This tool serves the purpose of dumping the state of the BNB Beacon Chain and generating Merkle tree proofs for user accounts.
 
-## Archived Data(coming soon)
+## Archived Data
 
 The following data is available for download:
 
@@ -21,11 +21,9 @@ The following data is available for download:
 | --- | --- |
 | Chain ID | `Binance-Chain-Tigris` |
 | Commit Hash | `TBD` |
-| Version | [TBD](https://...) |
 | Block | [TBD](https://...) (TBD) |
 | S3 Link | `TBD` |
 | Greenfield Link | `TBD` |
-| Arweave Link | `TBD` |
 | Size | TBD |
 | SHA256 | `TBD` |
 
@@ -34,14 +32,12 @@ The following data is available for download:
 | Field |Value |
 | --- | --- |
 | Chain ID | `Binance-Chain-Ganges` |
-| Commit Hash | `TBD` |
-| Version | [TBD](https://...) |
-| Block | [TBD](https://...) (TBD) |
-| S3 Link | `TBD` |
-| Greenfield Link | `TBD` |
-| Arweave Link | `TBD` |
-| Size | TBD |
-| SHA256 | `TBD` |
+| Commit Hash | `LeswMibeF/8ao8md6hbmFYHVXg/E+zVxjKO376qLGXo=` |
+| Block | `56503598` |
+| R2 Link | [Download](https://pub-c0627345c16f47ab858c9469133073a8.r2.dev/bc-testnet-dataseed.tar.gz) |
+| Greenfield Link | [Segment Download Links](https://raw.githubusercontent.com/bnb-chain/node-dump/blob/master/asset/bc-testnet-snapshot-segment-links.txt) |
+| Size | 164G |
+| SHA256 | `777a25f6d3228acb1854f1366b13befc1c2089ae2740cf5757120682ffc79a30` |
 
 ### Merkle Proofs of User Accounts
 
@@ -51,11 +47,9 @@ The following data is available for download:
 | --- | --- |
 | Chain ID | `Binance-Chain-Tigris` |
 | Commit Hash | `TBD` |
-| Version | [TBD](https://...) |
 | Block | [TBD](https://...) (TBD) |
 | S3 Link | `TBD` |
 | Greenfield Link | `TBD` |
-| Arweave Link | `TBD` |
 | Size | TBD |
 | SHA256 | `TBD` |
 
@@ -64,16 +58,13 @@ The following data is available for download:
 | Field |Value |
 | --- | --- |
 | Chain ID | `Binance-Chain-Ganges` |
-| Commit Hash | `TBD` |
-| Version | [TBD](https://...) |
-| Block | [TBD](https://...) (TBD) |
-| S3 Link | `TBD` |
-| Greenfield Link | `TBD` |
-| Arweave Link | `TBD` |
-| Size | TBD |
-| SHA256 | `TBD` |
+| Commit Hash | `LeswMibeF/8ao8md6hbmFYHVXg/E+zVxjKO376qLGXo=` |
+| Block | `56503598` |
+| R2 Link | [Download](https://pub-c0627345c16f47ab858c9469133073a8.r2.dev/bc-testnet-proofs.tar.gz) |
+| Greenfield Link | [Download](https://greenfield-sp.nodereal.io/view/bnb-beacon-chain-archive/bc-testnet-proofs.tar.gz) |
+| Size | 15M |
+| SHA256 | `69cc59903e514c529018fafbdebba0bafc6f8e1ef8a2602d4ce573a314b2eb9a` |
 
 ## Verification
 
-The verification tool is available at [token-recover-approver](https://github.com/bnb-chain/token-recover-approver).
 Please refer to the [verification guide](./docs/verification.md) for more details.

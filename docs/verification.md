@@ -18,8 +18,13 @@ refer to [readme.md](../Readme.md) for more details.
 - **ARCHIVED_PROOF_PATH**: the path of the Merkle Proofs of User Accounts data
 ```bash
 ## BNB Beacon Chain Node
+### 1. download from R2
 mkdir -p ${NODE_DATA_PATH}
 wget -qO- $NODE_DATA_LINK | tar -zxvf - -C ${NODE_DATA_PATH}
+
+### 2. download from greenfield
+wget $NODE_SEGMENT_LINKS -O ./bc-testnet-snapshot-segment-links.txt
+wget -i ./bc-testnet-snapshot-segment-links.txt -O - | cat > bc-testnet-snapshot.tar.gz && tar -xzvf - -C ${NODE_DATA_PATH}
 
 ## Merkle Proofs of User Accounts
 mkdir -p ${ARCHIVED_PROOF_PATH}
