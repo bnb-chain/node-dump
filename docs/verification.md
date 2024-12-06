@@ -14,8 +14,10 @@ make build
 
 Get the link from the data provider and download the data to the local machine.
 refer to [readme.md](../Readme.md) for more details.
+
 - **NODE_DATA_PATH**: the path of the BNB Beacon Chain Node data
 - **ARCHIVED_PROOF_PATH**: the path of the Merkle Proofs of User Accounts data
+
 ```bash
 ## BNB Beacon Chain Node
 ### 1. download from R2
@@ -34,6 +36,15 @@ wget -qO- $MERKLE_PROOF_DATA_LINK | tar -zxvf - -C ${ARCHIVED_PROOF_PATH}
 ## Verify Proofs Data
 
 verify the merkle proofs data from the fullnode to ensure the merkle proofs is matching the state of the fullnode.
+
+### Mainnet
+
+```bash
+./build/dump verify ${ARCHIVED_PROOF_PATH}/bc-mainnet-proofs --home $NODE_DATA_PATH/gaiad --tracelog
+```
+
+### Testnet
+
 ```bash
 ./build/dump verify ${ARCHIVED_PROOF_PATH}/dump --home $NODE_DATA_PATH/dataseed --tracelog
 ```

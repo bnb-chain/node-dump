@@ -20,11 +20,11 @@ The following data is available for download:
 | Field |Value |
 | --- | --- |
 | Chain ID | `Binance-Chain-Tigris` |
-| Commit Hash | `TBD` |
-| Block | [TBD](https://...) (TBD) |
-| S3 Link | `TBD` |
+| Commit Hash | `JdLTQmMqSmhFQrdmX0/XvpyXWFvcrJ/9pXirC/RyDzk=` |
+| Block | `385251927` |
+| R2 Link | [Download](https://pub-c0627345c16f47ab858c9469133073a8.r2.dev/bc-mainnet-dataseed.tar.gz) |
 | Greenfield Link | `TBD` |
-| Size | TBD |
+| Size | 1.7T |
 | SHA256 | `TBD` |
 
 #### Testnet
@@ -46,12 +46,12 @@ The following data is available for download:
 | Field |Value |
 | --- | --- |
 | Chain ID | `Binance-Chain-Tigris` |
-| Commit Hash | `TBD` |
-| Block | [TBD](https://...) (TBD) |
-| S3 Link | `TBD` |
-| Greenfield Link | `TBD` |
-| Size | TBD |
-| SHA256 | `TBD` |
+| Commit Hash | `JdLTQmMqSmhFQrdmX0/XvpyXWFvcrJ/9pXirC/RyDzk=` |
+| Block | `385251927` |
+| R2 Link | [Download](https://pub-c0627345c16f47ab858c9469133073a8.r2.dev/bc-mainnet-proofs.tar.gz) |
+| Greenfield Link | [Download](`https://greenfield-sp.nodereal.io/view/bnb-beacon-chain-archive/bc-mainnet-proofs.tar.gz`) |
+| Size | 833M |
+| SHA256 | `4fdf783b6cc5ba688775ed23f7e74651c95a2788b163a99e42770c356434e3e8` |
 
 #### Testnet
 
