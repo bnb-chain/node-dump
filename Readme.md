@@ -25,7 +25,7 @@ The following data is available for download:
 | R2 Link | [Download](https://pub-c0627345c16f47ab858c9469133073a8.r2.dev/bc-mainnet-dataseed.tar.gz) |
 | Greenfield Link | `TBD` |
 | Size | 1.7T |
-| SHA256 | `TBD` |
+| SHA256 | `da4b5460cf494030403af8e6da8f5399efe5fd06f9aaf754e15105dc93f792bb` |
 
 #### Testnet
 
