@@ -23,7 +23,7 @@ The following data is available for download:
 | Commit Hash | `JdLTQmMqSmhFQrdmX0/XvpyXWFvcrJ/9pXirC/RyDzk=` |
 | Block | `385251927` |
 | R2 Link | [Download](https://pub-c0627345c16f47ab858c9469133073a8.r2.dev/bc-mainnet-dataseed.tar.gz) |
-| Greenfield Link | `TBD` |
+| Greenfield Link | [Segment Download Links](https://raw.githubusercontent.com/bnb-chain/node-dump/refs/heads/master/asset/bc-mainnet-snapshot-segment-links.txt) |
 | Size | 1.7T |
 | SHA256 | `da4b5460cf494030403af8e6da8f5399efe5fd06f9aaf754e15105dc93f792bb` |
 
@@ -35,7 +35,7 @@ The following data is available for download:
 | Commit Hash | `LeswMibeF/8ao8md6hbmFYHVXg/E+zVxjKO376qLGXo=` |
 | Block | `56503598` |
 | R2 Link | [Download](https://pub-c0627345c16f47ab858c9469133073a8.r2.dev/bc-testnet-dataseed.tar.gz) |
-| Greenfield Link | [Segment Download Links](https://raw.githubusercontent.com/bnb-chain/node-dump/blob/master/asset/bc-testnet-snapshot-segment-links.txt) |
+| Greenfield Link | [Segment Download Links](https://raw.githubusercontent.com/bnb-chain/node-dump/refs/heads/master/asset/bc-testnet-snapshot-segment-links.txt) |
 | Size | 164G |
 | SHA256 | `777a25f6d3228acb1854f1366b13befc1c2089ae2740cf5757120682ffc79a30` |
 
