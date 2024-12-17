@@ -25,8 +25,17 @@ mkdir -p ${NODE_DATA_PATH}
 wget -qO- $NODE_DATA_LINK | tar -zxvf - -C ${NODE_DATA_PATH}
 
 ### 2. download from greenfield
-wget $NODE_SEGMENT_LINKS -O ./bc-testnet-snapshot-segment-links.txt
-wget -i ./bc-testnet-snapshot-segment-links.txt -O - | cat > bc-testnet-snapshot.tar.gz && tar -xzvf - -C ${NODE_DATA_PATH}
+#### Download the list of blockchain snapshot segment links.
+wget $NODE_SEGMENT_LINKS -O ./bc-snapshot-segment-links.txt
+
+#### Loop through each segment link in the list.
+while read -r line; do
+  #### Download the blockchain snapshot segment and append it to the main archive file.
+  wget $line -O - >> bc-snapshot.tar.gz
+done < ./bc-snapshot-segment-links.txt
+
+#### Extract the blockchain snapshot to the specified data directory.
+tar -xzvf bc-snapshot.tar.gz -C ${NODE_DATA_PATH}
 
 ## Merkle Proofs of User Accounts
 mkdir -p ${ARCHIVED_PROOF_PATH}
